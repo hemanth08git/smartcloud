@@ -11,46 +11,7 @@ cloud project. It includes:
 
 - Python 3.10+ installed
 - Node is **not** required (frontend is plain HTML + JS)
-- Recommended: create and activate a virtual environment
-
-## 2. Backend Setup (Local)
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Run the backend:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-By default it will run at: `http://127.0.0.1:8000`
-
-You can open the interactive API docs at: `http://127.0.0.1:8000/docs`.
-
-A SQLite database file `food_quality.db` will be created in the `backend/` folder.
-
-## 3. Frontend Setup (Local)
-
-The frontend is a simple static site.
-
-You can open `frontend/index.html` directly in the browser, or serve it
-with a simple static server, e.g.:
-
-```bash
-cd frontend
-python -m http.server 5500
-```
-
-Then visit: `http://127.0.0.1:5500/index.html`
-
-Make sure the backend is running on `http://127.0.0.1:8000`.
-
-## 4. Features
+## 2. Features
 
 ### CRUD Operations
 
@@ -86,7 +47,7 @@ Make sure the backend is running on `http://127.0.0.1:8000`.
   - total batches
   - high / medium / low / unknown risk batches
 
-## 5. Frontend UI
+## 3. Frontend UI
 
 The frontend provides:
 
