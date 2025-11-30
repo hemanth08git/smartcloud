@@ -100,12 +100,4 @@ The frontend provides:
 Use the forms to add new products, batches, inspections, and sensor readings.
 Then compute risk for a batch and see alerts appear.
 
-## 6. Notes
 
-This project is designed to be a **local prototype**. For your cloud
-assignment, you can:
-
-- Move the backend to AWS (Lambda + API Gateway / EC2)
-- Move the database to RDS or DynamoDB
-- Store inspection documents in S3
-- Add CI/CD (GitHub Actions) for deployment.
