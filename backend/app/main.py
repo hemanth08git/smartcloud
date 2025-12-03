@@ -1,3 +1,5 @@
+# app/main.py
+
 from typing import List
 
 from fastapi import FastAPI, Depends, HTTPException
@@ -9,24 +11,34 @@ from . import models, crud
 from .database import engine, Base
 from .deps import get_db
 
-from food_quality_analyzer.models import EnvironmentProfile, SpoilageRiskModel, SensorSample
+from food_quality_analyzer.models import (
+    EnvironmentProfile,
+    SpoilageRiskModel,
+    SensorSample,
+)
 from food_quality_analyzer.anomaly import SensorAnomalyDetector
 
 
-# Create DB tables (for the SQLAlchemy part: batches, inspections, sensor readings, etc.)
+# -------------------------------------------------------------------
+# DB init (SQLAlchemy: batches, inspections, sensor readings, alerts)
+# -------------------------------------------------------------------
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Smart Food Production & Quality Monitoring API")
 
-# CORS so frontend (different port) can call backend during local dev
+# -------------------------------------------------------------------
+# CORS so the frontend (different origin) can call the backend
+# -------------------------------------------------------------------
 origins = [
+    # local dev
     "http://localhost",
     "http://127.0.0.1",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "http://localhost:3000",
     "http://localhost:5173",
+    # S3 static website (update if your bucket/URL changes)
     "http://smartfood-frontend-x25104683.s3-website-us-east-1.amazonaws.com",
-    
 ]
 
 app.add_middleware(
@@ -38,14 +50,19 @@ app.add_middleware(
 )
 
 
+# ==========================
+# Health
+# ==========================
 @app.get("/health", tags=["health"])
 def health_check():
     return {"status": "ok"}
 
 
 # ==========================
-# Products (now using DynamoDB)
+# Products  (in-memory store via db_dynamo)
 # ==========================
+# NOTE: data is kept only in RAM and resets when the server restarts.
+
 
 @app.get("/products", response_model=List[schemas.Product], tags=["products"])
 def list_products():
@@ -77,9 +94,8 @@ def delete_product(product_id: int):
 
 
 # ==========================
-# Batches
+# Batches  (SQLAlchemy)
 # ==========================
-
 @app.get("/batches", response_model=List[schemas.Batch], tags=["batches"])
 def list_batches(db: Session = Depends(get_db)):
     return crud.get_batches(db)
@@ -113,7 +129,6 @@ def delete_batch(batch_id: int, db: Session = Depends(get_db)):
 # ==========================
 # Inspections
 # ==========================
-
 @app.get(
     "/batches/{batch_id}/inspections",
     response_model=List[schemas.Inspection],
@@ -138,7 +153,6 @@ def create_inspection(
 # ==========================
 # Sensor readings & risk scoring
 # ==========================
-
 @app.post(
     "/sensor-readings",
     response_model=schemas.SensorReading,
@@ -169,6 +183,7 @@ def compute_risk(batch_id: int, db: Session = Depends(get_db)):
         SensorSample(temperature=r.temperature, humidity=r.humidity)
         for r in readings
     ]
+
     profile = EnvironmentProfile.from_samples(samples)
     model = SpoilageRiskModel()
     result = model.evaluate(profile)
@@ -195,7 +210,6 @@ def compute_risk(batch_id: int, db: Session = Depends(get_db)):
 # ==========================
 # Alerts & dashboard
 # ==========================
-
 @app.get("/alerts", response_model=List[schemas.Alert], tags=["alerts"])
 def list_alerts(db: Session = Depends(get_db)):
     return crud.get_recent_alerts(db)
@@ -211,9 +225,8 @@ def dashboard_summary(db: Session = Depends(get_db)):
 
 
 # ==========================
-# PyOD anomaly detection (Batch-based)
+# PyOD anomaly detection (batch-based)
 # ==========================
-
 @app.post(
     "/sensor/analyze/batch/{batch_id}",
     response_model=schemas.BatchAnomalyResponse,
