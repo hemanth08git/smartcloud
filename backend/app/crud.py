@@ -106,7 +106,7 @@
 #     return alert
 
 
-# def get_recent_alerts(db: Session, limit: int = 20) -> List[models.Alert]:
+# def get_recent_alerts(db: Session, limit: int = 50) -> List[models.Alert]:
 #     return db.query(models.Alert).order_by(models.Alert.created_at.desc()).limit(limit).all()
 
 
